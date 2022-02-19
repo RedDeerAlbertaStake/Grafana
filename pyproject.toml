@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 88
+
+[tool.poetry]
+name = "tm_data"
+description = ""
+version = "0.0.0"
+authors = ["Trevor Lauder <trevor@lauder.family>"]
+
+[tool.poetry.dependencies]
+selenium = "^4.1.0"
+python = "^3.10"
+requests = "^2.26"
+pyyaml = "^6.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.11b1"
+flake8 = "^4.0"
+isort = "^5.10"

@@ -1,0 +1,19 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# .tfplan files
+*.tfplan
+
+.env
+.DS_Store
+.vscode
+.venv
+dist/
+config/
+
+chapels.auto.tfvars.json
+.terraformrc
