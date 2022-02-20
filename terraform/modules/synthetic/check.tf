@@ -5,13 +5,12 @@ resource "grafana_synthetic_monitoring_check" "chapel" {
   target             = each.value
   enabled            = true
   basic_metrics_only = false
+  alert_sensitivity  = "high"
 
   probes = [
     data.grafana_synthetic_monitoring_probes.main.probes.NorthCalifornia,
     data.grafana_synthetic_monitoring_probes.main.probes.Oregon,
   ]
-
-  labels = {}
 
   settings {
     ping {
