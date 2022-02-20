@@ -10,6 +10,8 @@ resource "grafana_synthetic_monitoring_check" "chapel" {
   probes = [
     data.grafana_synthetic_monitoring_probes.main.probes.NorthCalifornia,
     data.grafana_synthetic_monitoring_probes.main.probes.Oregon,
+    data.grafana_synthetic_monitoring_probes.main.probes.Toronto,
+    data.grafana_synthetic_monitoring_probes.main.probes.NewYork,
   ]
 
   settings {
