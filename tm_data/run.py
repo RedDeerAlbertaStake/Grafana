@@ -3,10 +3,13 @@ import os
 import subprocess
 import time
 from datetime import datetime
+from subprocess import CalledProcessError
 
 import requests
 import yaml
+from requests.exceptions import ConnectionError
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -15,6 +18,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 username = os.environ["TM_DATA_USERNAME"]
 password = os.environ["TM_DATA_PASSWORD"]
+
+tm_base_url = "https://tm.churchofjesuschrist.org"
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -25,11 +30,11 @@ driver = webdriver.Chrome(options=chrome_options)
 
 
 def get_tm():
-    driver.get("https://tm.churchofjesuschrist.org")
+    driver.get(tm_base_url)
 
 
 def logout_tm():
-    driver.get("https://tm.churchofjesuschrist.org/logout.html")
+    driver.get(f"{tm_base_url}/logout.html")
 
 
 def do_username(username: str):
@@ -48,7 +53,7 @@ def do_password(password: str):
 
     try:
         verify[1].click()
-    except:
+    except Exception:
         verify[0].click()
 
 
@@ -66,14 +71,12 @@ def do_mfa():
 
     try:
         mfa_send_push[1].click()
-    except:
+    except Exception:
         mfa_send_push[0].click()
 
 
 def wait_on_tm_after_auth():
-    WebDriverWait(driver, 600).until(
-        EC.url_contains("https://tm.churchofjesuschrist.org")
-    )
+    WebDriverWait(driver, 600).until(EC.url_contains(tm_base_url))
 
     time.sleep(10)
 
@@ -116,46 +119,56 @@ def main():
 
     wait_on_tm_after_auth()
 
+    initial_run = True
+
     while True:
-        headers = {
-            "Authorization": f"Bearer {get_security_token()}",
-        }
+        try:
+            if initial_run:
+                initial_run = False
+            else:
+                get_tm()
+                do_username(username=username)
+                do_password(password=password)
 
-        data = {"chapels": {}}
+                wait_on_tm_after_auth()
 
-        for serial in config["firewall"]["serials"]:
-            r = requests.get(
-                f"https://tm.churchofjesuschrist.org/api/meraki/activate/{serial}",
-                headers=headers,
-            )
+            headers = {
+                "Authorization": f"Bearer {get_security_token()}",
+            }
 
-            r_subnet = requests.get(
-                f"https://tm.churchofjesuschrist.org/api/meraki/firewall/{serial}/subnets",
-                headers=headers,
-            )
+            data = {"chapels": {}}
 
-            chapelName = r.json()["propertyName"]
-            chapelIp = r_subnet.json()["publicIp"]
+            for serial in config["firewall"]["serials"]:
+                r = requests.get(
+                    f"{tm_base_url}/api/meraki/activate/{serial}",
+                    headers=headers,
+                )
 
-            data["chapels"][chapelName] = chapelIp
+                r_subnet = requests.get(
+                    f"{tm_base_url}/api/meraki/firewall/{serial}/subnets",
+                    headers=headers,
+                )
 
-        print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-        print(json.dumps(data, indent=2))
+                chapelName = r.json()["propertyName"]
+                chapelIp = r_subnet.json()["publicIp"]
 
-        with open("chapels.auto.tfvars.json", "w") as f:
-            json.dump(data, f, indent=2)
+                data["chapels"][chapelName] = chapelIp
 
-        logout_tm()
+            print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+            print(json.dumps(data, indent=2))
 
-        terraform_apply()
+            with open("chapels.auto.tfvars.json", "w") as f:
+                json.dump(data, f, indent=2)
 
-        time.sleep(600)
+            logout_tm()
 
-        get_tm()
-        do_username(username=username)
-        do_password(password=password)
+            terraform_apply()
+        except TimeoutException or CalledProcessError or ConnectionError or NoSuchElementException:
+            pass
+        finally:
+            logout_tm()
 
-        wait_on_tm_after_auth()
+            time.sleep(600)
 
 
 if __name__ == "__main__":
