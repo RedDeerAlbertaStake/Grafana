@@ -159,7 +159,7 @@ def main():
             print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
             print(json.dumps(data, indent=2))
 
-            with open("chapels.auto.tfvars.json", "w") as f:
+            with open("terraform/chapels.auto.tfvars.json", "w") as f:
                 json.dump(data, f, indent=2)
 
             logout_tm()
