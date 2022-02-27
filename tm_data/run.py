@@ -92,17 +92,19 @@ def get_security_token():
 def terraform_init():
     subprocess.check_call(
         ["terraform", "init"],
+        cwd="terraform",
     )
 
 
 def terraform_apply():
     subprocess.check_call(
         ["terraform", "apply", "-auto-approve"],
+        cwd="terraform",
     )
 
 
 def main():
-    with open("/app/config/app.yaml", "r") as f:
+    with open("config/app.yaml", "r") as f:
         config = yaml.safe_load(f.read())
 
     terraform_init()

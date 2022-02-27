@@ -10,5 +10,5 @@ services:
     restart: always
     volumes:
       - ./terraform/.terraformrc:/.terraformrc
-      - ./terraform:/terraform
+      - ./terraform:/app/terraform
       - ./config:/app/config

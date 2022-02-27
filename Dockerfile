@@ -40,8 +40,8 @@ FROM base AS final
 COPY --from=build .venv .venv
 COPY --from=build app app
 
-VOLUME /terraform
-WORKDIR /terraform
+VOLUME /app/terraform
+WORKDIR /app
 
 RUN apt full-upgrade -y
 
