@@ -3,13 +3,12 @@ import os
 import subprocess
 import time
 from datetime import datetime
-from subprocess import CalledProcessError
 
 import requests
+import requests.exceptions
+import selenium.common.exceptions
 import yaml
-from requests.exceptions import ConnectionError
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -165,7 +164,12 @@ def main():
             logout_tm()
 
             terraform_apply()
-        except TimeoutException or CalledProcessError or ConnectionError or NoSuchElementException:
+        except (
+            selenium.common.exceptions.TimeoutException
+            or subprocess.CalledProcessError
+            or requests.exceptions.ConnectionError
+            or selenium.common.exceptions.NoSuchElementException
+        ):
             pass
         finally:
             logout_tm()
